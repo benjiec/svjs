@@ -1,14 +1,16 @@
-window.SequenceViewer = function ($, options) {
-    var dom_id = 'sequence-viewer';
-    if ('dom_id' in options) { dom_id = options.dom_id; }
-    var selector = '#'+dom_id;
-    $(selector).html('<table></table>');
+window.SequenceViewer = function ($, selector) {
+    $('<table></table>').addClass('svjs').appendTo($(selector));
 
     function clear() {
         $('table', selector).empty();
     }
 
+    // Displays annotations with sequence. Annotations should be an array of
+    // objects, each with base_first, base_last, and display_name attributes.
+    //
     function setSequenceWithAnnotations(sequence, annotations, start_bp, rowlen) {
+        if (start_bp < 1) { alert('start_bp should be one or greater'); }
+
         function annotationToggle(ev) {
             var el = $(ev.target);
             if (el.hasClass('sequence-annotation-selected')) {
@@ -63,6 +65,9 @@ window.SequenceViewer = function ($, options) {
             });
 
             var tr_mid = $('<tr class="sequence-bp"></tr>');
+            var pos = $('<td class="sequence-pos sequence-pos-left"></td>').append(row_start);
+            tr_mid.append(pos);
+
             var tr_top = [];
             var tr_top_html = '<tr class="sequence-annotation sequence-annotation-start"></tr>';
             var tr_bot = [];
@@ -78,6 +83,8 @@ window.SequenceViewer = function ($, options) {
                     if (start_annotations[i]) {
                         _.map(start_annotations[i], function(a) {
                             var tr = $(tr_top_html);
+                            // empty td for bp number
+                            tr.append('<td></td>');
                             if (i > 0) { tr.append('<td colspan="'+i+'"></td>'); }
                             var td = $('<td></td>');
                             var c = '&gt;';
@@ -89,6 +96,8 @@ window.SequenceViewer = function ($, options) {
                             td.append(a);
                             tr.append(td);
                             if (i < row.length-1) { tr.append('<td colspan="'+(row.length-i-1)+'"></td>'); }
+                            // empty td for bp number
+                            tr.append('<td></td>');
                             tr_top.push(tr);
                         });
                     }
@@ -98,6 +107,8 @@ window.SequenceViewer = function ($, options) {
                     if (end_annotations[i]) {
                         _.map(end_annotations[i], function(a) {
                             var tr = $(tr_bot_html);
+                            // empty td for bp number
+                            tr.append('<td></td>');
                             if (i > 0) { tr.append('<td colspan="'+i+'"></td>'); }
                             var td = $('<td></td>');
                             var a = $('<div></div>')
@@ -107,6 +118,8 @@ window.SequenceViewer = function ($, options) {
                             td.append(a);
                             tr.append(td);
                             if (i < row.length-1) { tr.append('<td colspan="'+(row.length-i-1)+'"></td>'); }
+                            // empty td for bp number
+                            tr.append('<td></td>');
                             tr_bot.push(tr);
                         });
                     }
@@ -114,6 +127,11 @@ window.SequenceViewer = function ($, options) {
 
                 i += 1;
             });
+
+            if (row_end < start_bp+sequence.length-1) {
+                var pos = $('<td class="sequence-pos sequence-pos-right"></td>').append(row_end);
+                tr_mid.append(pos);
+            }
 
             if (tr_top.length > 0) { tr_top[0].addClass('sequence-annotation-start-first'); }
             _.map(tr_top, function(tr) { $('table', selector).append(tr); });
@@ -127,40 +145,8 @@ window.SequenceViewer = function ($, options) {
         $('tr.sequence-annotation td div').on('click', annotationToggle);
     }
 
-    function setSequence(sequence, start_bp, rowlen, column) {
-        rowlen = typeof rowlen !== 'undefined' ? rowlen : 80;
-        column = typeof column !== 'undefined' ? column : 10;
-        clear();
-
-        var rsplit = new RegExp('(.{1,'+rowlen+'})', 'g');
-        var csplit = new RegExp('(.{1,'+column+'})', 'g');
-        var rows = sequence.match(rsplit);
-        var tr = $('<tr></tr>');
-
-        var s = start_bp;
-        var td_s = $('<td class="sequence-pos"></td>');
-        var td_d = $('<td class="sequence-data"></td>');
-        var td_l = $('<td class="sequence-pos"></td>');
-        for (var i=0; i<rows.length; i++) {
-            var l = s+rows[i].length-1;
-            td_s.append(s+'/'+(s-start_bp+1)+'<br/>');
-            var columns = rows[i].match(csplit);
-            for (var j=0; j<columns.length; j++) {
-                td_d.append('<span>'+columns[j]+'</span>');
-            }
-            td_d.append('<br/>');
-            td_l.append(l+'/'+(l-start_bp+1)+'<br/>');
-            s = l+1;
-        }
-        tr.append(td_s);
-        tr.append(td_d);
-        tr.append(td_l);
-        $('table', selector).append(tr);
-    }
-
     return {
         clear: clear,
-        setSequence: setSequence,
         setSequenceWithAnnotations: setSequenceWithAnnotations
     }
 }
