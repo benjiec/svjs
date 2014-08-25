@@ -11,6 +11,34 @@ window.SequenceViewer = function ($, selector) {
     function setSequenceWithAnnotations(sequence, annotations, start_bp, rowlen) {
         if (start_bp < 1) { alert('start_bp should be one or greater'); }
 
+        function add_annotations(row, bpi, pre, annotation_list, tr_html, tr_list) {
+            if (annotation_list.length > 0) {
+                if (annotation_list[bpi]) {
+                    _.map(annotation_list[bpi], function(a) {
+                        var tr = $(tr_html);
+                        // empty td for bp number
+                        tr.append('<td></td>');
+                        if (bpi > 0) { tr.append('<td colspan="'+bpi+'"></td>'); }
+                        var td = $('<td></td>');
+                        var c = '&gt;';
+                        if (a.strand < 0) { c = '&lt;'; }
+                        var a = $('<div></div>')
+                                  .addClass('sequence-annotation-'+a.__sequence_annotation_id)
+                                  .data('sequence-annotation-id', a.__sequence_annotation_id)
+                                  .append(pre+c+a.display_name);
+                        td.append(a);
+                        tr.append(td);
+                        if (bpi < row.length-1) {
+                            tr.append('<td colspan="'+(row.length-bpi-1)+'"></td>');
+                        }
+                        // empty td for bp number
+                        tr.append('<td></td>');
+                        tr_list.push(tr);
+                    });
+                }
+            }
+        }
+
         function annotationToggle(ev) {
             var el = $(ev.target);
             if (el.hasClass('sequence-annotation-selected')) {
@@ -67,66 +95,28 @@ window.SequenceViewer = function ($, selector) {
             var tr_mid = $('<tr class="sequence-bp"></tr>');
             var pos = $('<td class="sequence-pos sequence-pos-left"></td>').append(row_start);
             tr_mid.append(pos);
-
             var tr_top = [];
-            var tr_top_html = '<tr class="sequence-annotation sequence-annotation-start"></tr>';
             var tr_bot = [];
-            var tr_bot_html = '<tr class="sequence-annotation sequence-annotation-end"></tr>';
 
-            var i = 0;
-            _.map(row.split(''), function(bp) {
-                var td = $('<td></td>');
-                td.append(bp);
+            if (row_annotations.length === 0) {
+                var td = $('<td colspan="'+row.length+'"></td>').append(row);
                 tr_mid.append(td);
+            }
+            else {
+                var tr_top_html = '<tr class="sequence-annotation sequence-annotation-start"></tr>';
+                var tr_bot_html = '<tr class="sequence-annotation sequence-annotation-end"></tr>';
 
-                if (start_annotations.length > 0) {
-                    if (start_annotations[i]) {
-                        _.map(start_annotations[i], function(a) {
-                            var tr = $(tr_top_html);
-                            // empty td for bp number
-                            tr.append('<td></td>');
-                            if (i > 0) { tr.append('<td colspan="'+i+'"></td>'); }
-                            var td = $('<td></td>');
-                            var c = '&gt;';
-                            if (a.strand < 0) { c = '&lt;'; }
-                            var a = $('<div></div>')
-                                      .addClass('sequence-annotation-'+a.__sequence_annotation_id)
-                                      .data('sequence-annotation-id', a.__sequence_annotation_id)
-                                      .append('['+c+a.display_name);
-                            td.append(a);
-                            tr.append(td);
-                            if (i < row.length-1) { tr.append('<td colspan="'+(row.length-i-1)+'"></td>'); }
-                            // empty td for bp number
-                            tr.append('<td></td>');
-                            tr_top.push(tr);
-                        });
-                    }
-                }
+                var i = 0;
+                _.map(row.split(''), function(bp) {
+                    var td = $('<td></td>');
+                    tr_mid.append(td);
+                    td.append(bp);
 
-                if (end_annotations.length > 0) {
-                    if (end_annotations[i]) {
-                        _.map(end_annotations[i], function(a) {
-                            var tr = $(tr_bot_html);
-                            // empty td for bp number
-                            tr.append('<td></td>');
-                            if (i > 0) { tr.append('<td colspan="'+i+'"></td>'); }
-                            var td = $('<td></td>');
-                            var a = $('<div></div>')
-                                      .addClass('sequence-annotation-'+a.__sequence_annotation_id)
-                                      .data('sequence-annotation-id', a.__sequence_annotation_id)
-                                      .append(']'+a.display_name);
-                            td.append(a);
-                            tr.append(td);
-                            if (i < row.length-1) { tr.append('<td colspan="'+(row.length-i-1)+'"></td>'); }
-                            // empty td for bp number
-                            tr.append('<td></td>');
-                            tr_bot.push(tr);
-                        });
-                    }
-                }
-
-                i += 1;
-            });
+                    add_annotations(row, i, '[', start_annotations, tr_top_html, tr_top);
+                    add_annotations(row, i, ']', end_annotations, tr_bot_html, tr_bot);
+                    i += 1;
+                });
+            }
 
             if (row_end < start_bp+sequence.length-1) {
                 var pos = $('<td class="sequence-pos sequence-pos-right"></td>').append(row_end);
@@ -149,4 +139,4 @@ window.SequenceViewer = function ($, selector) {
         clear: clear,
         setSequenceWithAnnotations: setSequenceWithAnnotations
     }
-}
+};
