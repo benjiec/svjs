@@ -1,4 +1,4 @@
-window.SequenceViewer = function ($, selector) {
+window.SvJs = function ($, selector) {
     $('<table></table>').addClass('svjs').appendTo($(selector));
 
     function clear() {
