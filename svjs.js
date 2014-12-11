@@ -1,5 +1,13 @@
 window.SvJs = function ($, selector) {
-    $('<table></table>').addClass('svjs').appendTo($(selector));
+    var container = $('<div></div>');
+    $(selector).append(container);
+
+    var show_hide_bps = $('<a>Toggle bps</a>').on('click', function() {
+        $('table td.sequence-pos', container).toggle();
+    });
+    container.append($('<p></p>').append(show_hide_bps));
+
+    $('<table></table>').addClass('svjs').appendTo(container);
 
     function clear() {
         $('table', selector).empty();
