@@ -25,7 +25,7 @@ window.SvJs = function ($, selector) {
                     _.map(annotation_list[bpi], function(a) {
                         var tr = $(tr_html);
                         // empty td for bp number
-                        tr.append('<td></td>');
+                        tr.append('<td class="sequence-pos"></td>');
                         if (bpi > 0) { tr.append('<td colspan="'+bpi+'"></td>'); }
                         var td = $('<td></td>');
                         var c = '&gt;';
@@ -40,7 +40,7 @@ window.SvJs = function ($, selector) {
                             tr.append('<td colspan="'+(row.length-bpi-1)+'"></td>');
                         }
                         // empty td for bp number
-                        tr.append('<td></td>');
+                        tr.append('<td class="sequence-pos"></td>');
                         tr_list.push(tr);
                     });
                 }
